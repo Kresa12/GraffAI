@@ -56,6 +56,7 @@ dependencies {
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.runtime.livedata)
 
     //workruntime
     val work_version = "2.10.2"
