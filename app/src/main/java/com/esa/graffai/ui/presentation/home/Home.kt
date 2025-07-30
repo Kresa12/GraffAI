@@ -1,16 +1,12 @@
-package com.esa.graffai.ui.presentation
+package com.esa.graffai.ui.presentation.home
 
 import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,26 +31,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.media3.common.util.Log
-import androidx.media3.common.util.UnstableApi
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import java.io.File
+import com.esa.graffai.data.RoboflowViewModel
 
 @Composable
 fun Home(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val viewModelLaunchGalleryAndCameraViewModel : LaunchGalleryAndCameraViewModel = hiltViewModel()
+    val viewModelRoboflow : RoboflowViewModel = hiltViewModel()
     var showDialog by remember{ mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     selectedImageUri = null
@@ -69,7 +56,7 @@ fun Home(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
-            val uri = saveBitmapToCache(context, bitmap)
+            val uri = viewModelLaunchGalleryAndCameraViewModel.saveBitmapToCache(context, bitmap)
             selectedImageUri = uri
         }
     }
@@ -105,7 +92,7 @@ fun Home(
     ) {
         Button(
             onClick = {
-                if (hasPermissions(context, permissions)) {
+                if (viewModelLaunchGalleryAndCameraViewModel.hasPermissions(context, permissions)) {
                     showDialog = true
                 }else {
                     permissionLauncher.launch(permissions)
@@ -131,7 +118,7 @@ fun Home(
                 Button(
                     onClick = {
                         isSending = true
-                        sendImageAPI(context, it){ success ->
+                        viewModelLaunchGalleryAndCameraViewModel.sendImageAPI(context, it){ success ->
                             isSending = false
                             if (success) {
                                 selectedImageUri = null
@@ -182,66 +169,4 @@ fun Home(
     }
 }
 
-fun hasPermissions(context: Context, permissions: Array<String>) : Boolean{
-    return permissions.all {permission ->
-        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-    }
-}
 
-fun saveBitmapToCache(context: Context, bitmap: Bitmap) : Uri {
-    val fileName = "IMG_${System.currentTimeMillis()}.jpg"
-    val file = File(context.cacheDir, fileName)
-    file.outputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-    }
-    return FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.provider",
-        file
-    )
-}
-
-fun uriToBase64(context: Context, uri: Uri) : String? {
-    return try {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val bytes = inputStream?.readBytes()
-        Base64.encodeToString(bytes, Base64.NO_WRAP)
-    }catch (e : Exception){
-        e.printStackTrace()
-        null
-    }
-}
-
-fun urlToMultipart(context: Context, uri: Uri, paramName : String = "file") : MultipartBody.Part?{
-    return try {
-        val fileName = "IMG_${System.currentTimeMillis()}.jpg"
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val bytes = inputStream?.readBytes() ?: return null
-        val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), bytes)
-        MultipartBody.Part.createFormData(paramName, fileName, requestBody)
-    }catch (e : Exception){
-        e.printStackTrace()
-        null
-    }
-}
-
-
-@OptIn(UnstableApi::class)
-fun sendImageAPI(context: Context, uri: Uri, callback : (Boolean) -> Unit){
-    val base64String = uriToBase64(context, uri)
-    Log.d("Tag_selectedImageUri", "Base64 String: $base64String")
-
-    val multipartBody = urlToMultipart(context, uri)
-    Log.d("Tag_selectedImageUri", "Multipart Part: $multipartBody")
-
-    if (multipartBody != null){
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(2000L)
-            withContext(Dispatchers.Main) {
-                callback(true)
-            }
-        }
-    }else {
-        callback(false)
-    }
-}

@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.esa.graffai.ui.presentation.Home
+import com.esa.graffai.ui.presentation.home.Home
 import com.esa.graffai.ui.theme.GraffAITheme
 
 class MainActivity : ComponentActivity() {
