@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "242743952025",
+    "project_id": "graffai-9919e",
+    "storage_bucket": "graffai-9919e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242743952025:android:37da4513437604d213ae08",
+        "android_client_info": {
+          "package_name": "com.esa.graffai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDscMP-FFqr4w-TlT5VBEQReSD7F3ceumo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

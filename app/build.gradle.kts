@@ -6,6 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
 
     id("com.google.dagger.hilt.android")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -45,29 +46,28 @@ android {
 
 dependencies {
 
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation (libs.kotlinx.coroutines.core)
+    implementation (libs.kotlinx.coroutines.android)
 
-    implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
+    implementation(libs.accompanist.permissions)
 
-    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.firestore)
 
-    //workruntime
-    val work_version = "2.10.2"
     // Kotlin + coroutines
-    implementation("androidx.work:work-runtime-ktx:$work_version")
+    implementation(libs.androidx.work.runtime.ktx)
 
-    implementation("com.google.dagger:hilt-android:2.56.2")
-    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    ksp("androidx.hilt:hilt-compiler:1.1.0")
-    implementation("androidx.hilt:hilt-work:1.1.0")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.hilt.work)
 
     implementation (libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
