@@ -46,8 +46,12 @@ fun Home(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        val uriToBitmap = FileUtils.uriToBitmap(context, uri!!)
-        selectedImageUri = FileUtils.saveBitmapToInternalStorage(context, uriToBitmap!!)
+        uri?.let {
+            val uriToBitmap = FileUtils.uriToBitmap(context, uri)
+            uriToBitmap?.let {bitmap ->
+                selectedImageUri = FileUtils.saveBitmapToInternalStorage(context, bitmap)
+            }
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
