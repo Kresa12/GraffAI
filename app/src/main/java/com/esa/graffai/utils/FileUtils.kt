@@ -2,6 +2,7 @@ package com.esa.graffai.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.content.FileProvider
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -24,6 +25,16 @@ object FileUtils {
             "${context.packageName}.provider",
             file
         )
+    }
+
+    fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            BitmapFactory.decodeStream(inputStream)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     fun uriToMultipart(context: Context, uri: Uri, paramName: String = "file"): MultipartBody.Part? {
