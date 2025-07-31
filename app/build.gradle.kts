@@ -46,23 +46,19 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
     implementation (libs.kotlinx.coroutines.core)
     implementation (libs.kotlinx.coroutines.android)
-
     implementation(libs.accompanist.permissions)
-
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.firestore)
-
-    // Kotlin + coroutines
     implementation(libs.androidx.work.runtime.ktx)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
