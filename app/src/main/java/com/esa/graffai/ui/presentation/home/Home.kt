@@ -22,16 +22,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import com.esa.graffai.utils.FileUtils
+import com.esa.graffai.viewmodel.RiwayatViewModel
 import com.esa.graffai.viewmodel.RoboflowViewModel
 
 @Composable
 fun Home(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
     val context = LocalContext.current
     val viewModel: RoboflowViewModel = hiltViewModel()
+    val viewModelRiwayat: RiwayatViewModel = hiltViewModel()
 
     val result by viewModel.result.observeAsState()
     val error by viewModel.error.observeAsState()
@@ -48,8 +52,8 @@ fun Home(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            selectedImageUri = FileUtils.saveBitmapToCache(context, bitmap)
+        bitmap?.let {
+            selectedImageUri = FileUtils.saveBitmapToInternalStorage(context, it)
         }
     }
 
@@ -104,6 +108,18 @@ fun Home(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val bestPrediction = result?.predictions?.maxByOrNull { it.value.confidence }
+                    val label = bestPrediction?.key ?: "unknown"
+                    val confidence = bestPrediction?.value?.confidence?.toFloat() ?: 0f
+                    viewModelRiwayat.insert(uri, label, confidence)
+                    Toast.makeText(context, "Berhasil ditambahkan ke riwayat", Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Text("Tambahkan Ke Riwayat")
+            }
         }
 
         result?.let { prediction ->
@@ -117,6 +133,16 @@ fun Home(
 
         error?.let {
             Text("Error: $it", color = Color.Red)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                navController.navigate("riwayat")
+            }
+        ) {
+            Text("Riwayat")
         }
 
         if (showDialog) {

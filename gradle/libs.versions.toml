@@ -25,6 +25,7 @@ runtimeLivedata = "1.8.3"
 googleGmsGoogleServices = "4.4.3"
 firebaseFirestore = "26.0.0"
 workRuntimeKtx = "2.10.2"
+roomRuntimeAndroid = "2.7.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -59,6 +60,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
+androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
