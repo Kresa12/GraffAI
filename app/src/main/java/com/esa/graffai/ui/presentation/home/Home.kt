@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -95,36 +96,51 @@ fun Home(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        selectedImageUri?.let { uri ->
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = null,
+        if (selectedImageUri == null) {
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(200.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.Gray, CircleShape)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(onClick = {
-                viewModel.classifyImageFromUri(context, uri)
-            }) {
-                Text("Kirim ke API")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val bestPrediction = result?.predictions?.maxByOrNull { it.value.confidence }
-                    val label = bestPrediction?.key ?: "unknown"
-                    val confidence = bestPrediction?.value?.confidence?.toFloat() ?: 0f
-                    viewModelRiwayat.insert(uri, label, confidence)
-                    Toast.makeText(context, "Berhasil ditambahkan ke riwayat", Toast.LENGTH_SHORT).show()
-                }
+                    .fillMaxWidth()
+                    .height(300.dp)
+                    .background(Color.Gray)
+                    .clip(shape = RoundedCornerShape(5.dp))
             ) {
-                Text("Tambahkan Ke Riwayat")
+                Text(
+                    text = "Belum ada gambar"
+                )
+            }
+        } else {
+            selectedImageUri?.let { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(300.dp)
+                        .clip(shape = RoundedCornerShape(5.dp))
+                        .border(2.dp, Color.Gray, RoundedCornerShape(5.dp))
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    viewModel.classifyImageFromUri(context, uri)
+                }) {
+                    Text("Kirim ke API")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        val bestPrediction = result?.predictions?.maxByOrNull { it.value.confidence }
+                        val label = bestPrediction?.key ?: "unknown"
+                        val confidence = bestPrediction?.value?.confidence?.toFloat() ?: 0f
+                        viewModelRiwayat.insert(uri, label, confidence)
+                        Toast.makeText(context, "Berhasil ditambahkan ke riwayat", Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Text("Tambahkan Ke Riwayat")
+                }
             }
         }
 
