@@ -180,6 +180,14 @@ fun Home(
             Text("Riwayat")
         }
 
+        Button(
+            onClick = {
+                navController.navigate("maps")
+            }
+        ) {
+            Text("Maps")
+        }
+
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },

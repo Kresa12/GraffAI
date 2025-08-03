@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.esa.graffai.ui.presentation.home.Home
+import com.esa.graffai.ui.presentation.maps.Maps
 import com.esa.graffai.ui.presentation.riwayat.Riwayat
 
 @Composable
@@ -20,9 +21,13 @@ fun AppNavigation(
                 modifier = modifier
             )
         }
-
         composable("riwayat") {
             Riwayat(
+                modifier = modifier
+            )
+        }
+        composable("maps") {
+            Maps(
                 modifier = modifier
             )
         }
