@@ -29,6 +29,7 @@ fun Maps(
     LaunchedEffect(Unit) {
         markerViewModel.getAllMarkers()
     }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -36,26 +37,39 @@ fun Maps(
     ) {
         AndroidView(
             factory = {
-                val mapView = MapView(context).apply {
+                MapView(context).apply {
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
                     controller.setCenter(GeoPoint(-6.879704, 109.125595))
                 }
-                mapView
             },
             update = { mapView ->
                 mapView.overlays.clear()
-                marker.forEach {
-                    val geoPoint = GeoPoint(it.lat, it.lng)
+
+                val usedPositions = mutableSetOf<Pair<Double, Double>>()
+
+                marker.forEach { markerModel ->
+                    var lat = markerModel.lat
+                    var lng = markerModel.lng
+
+                    while (usedPositions.contains(Pair(lat, lng))) {
+                        lat += 0.00005
+                        lng += 0.00005
+                    }
+
+                    usedPositions.add(Pair(lat, lng))
+
+                    val geoPoint = GeoPoint(lat, lng)
                     val markerItem = Marker(mapView).apply {
                         position = geoPoint
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        title = "Prediksi : ${it.label}"
-                        snippet = "Confidence: ${"%.2f".format(it.confidences * 100)}%"
+                        title = "Prediksi: ${markerModel.label}"
+                        snippet = "Confidence: ${"%.2f".format(markerModel.confidences * 100)}%"
                     }
                     mapView.overlays.add(markerItem)
                 }
+
                 mapView.invalidate()
             },
             modifier = Modifier.fillMaxSize()
