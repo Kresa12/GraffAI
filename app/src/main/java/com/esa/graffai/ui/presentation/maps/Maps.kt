@@ -1,5 +1,6 @@
 package com.esa.graffai.ui.presentation.maps
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,10 +67,15 @@ fun Maps(
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         title = "Prediksi: ${markerModel.label}"
                         snippet = "Confidence: ${"%.2f".format(markerModel.confidences * 100)}%"
+
+                        setOnMarkerClickListener{_, _ ->
+                            markerViewModel.deleteMarker(markerModel = markerModel)
+                            Toast.makeText(context, "marker berhasil di hapus", Toast.LENGTH_SHORT).show()
+                            true
+                        }
                     }
                     mapView.overlays.add(markerItem)
                 }
-
                 mapView.invalidate()
             },
             modifier = Modifier.fillMaxSize()

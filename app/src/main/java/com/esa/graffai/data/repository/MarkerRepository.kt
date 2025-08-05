@@ -16,6 +16,10 @@ class MarkerRepository @Inject constructor(
         docRef.set(markerWithId).await()
     }
 
+    suspend fun deleteMarker(marker: MarkerModel) {
+        markersRef.document(marker.id).delete().await()
+    }
+
     suspend fun getAllMarkers() : List<MarkerModel> {
         val snapshot = markersRef.get().await()
         return snapshot.documents.mapNotNull { it.toObject(MarkerModel::class.java) }

@@ -38,4 +38,11 @@ class MarkerViewModel @Inject constructor(
             getAllMarkers()
         }
     }
+
+    fun deleteMarker(markerModel: MarkerModel) {
+        viewModelScope.launch {
+            repository.deleteMarker(marker = markerModel)
+            getAllMarkers()
+        }
+    }
 }
