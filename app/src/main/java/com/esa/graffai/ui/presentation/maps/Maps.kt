@@ -1,6 +1,10 @@
 package com.esa.graffai.ui.presentation.maps
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,12 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.esa.graffai.viewmodel.MarkerViewModel
+import com.google.android.gms.location.LocationServices
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -27,7 +34,40 @@ fun Maps(
     val markerViewModel : MarkerViewModel = hiltViewModel()
     val marker by markerViewModel.marker.collectAsState()
 
+    val locationFinePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    val locationCoarsePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    val permissionsLocation = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionMap ->
+        val permissionGranted = permissionMap.values.reduce{acc, isPermissionranted ->
+            acc && isPermissionranted
+        }
+
+        if (!permissionGranted) {
+            Toast.makeText(context, "Permission location denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val fusedLocationProviderClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
     LaunchedEffect(Unit) {
+        if (!locationFinePermissionAlreadyGranted || !locationCoarsePermissionAlreadyGranted) {
+            locationPermissionLauncher.launch(permissionsLocation)
+        }
+
         markerViewModel.getAllMarkers()
     }
 
@@ -42,7 +82,13 @@ fun Maps(
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
-                    controller.setCenter(GeoPoint(-6.879704, 109.125595))
+                    fusedLocationProviderClient.lastLocation.addOnSuccessListener { loc ->
+                        loc?.let {
+                            controller.setCenter(
+                                GeoPoint(loc.latitude, loc.longitude)
+                            )
+                        }
+                    }
                 }
             },
             update = { mapView ->
