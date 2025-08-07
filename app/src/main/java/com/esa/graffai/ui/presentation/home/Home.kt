@@ -1,7 +1,6 @@
 package com.esa.graffai.ui.presentation.home
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -38,15 +37,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import com.esa.graffai.viewmodel.CameraAndGalleryViewModel
+import com.esa.graffai.viewmodel.LocationViewModel
 import com.esa.graffai.viewmodel.MarkerViewModel
 import com.esa.graffai.viewmodel.RiwayatViewModel
 import com.esa.graffai.viewmodel.RoboflowViewModel
-import com.google.android.gms.location.LocationServices
 
 @Composable
 fun Home(
@@ -59,6 +57,7 @@ fun Home(
     val viewModelRiwayat: RiwayatViewModel = hiltViewModel()
     val markerViewModel : MarkerViewModel = hiltViewModel()
     val viewModelCameraAndGalleryViewModel : CameraAndGalleryViewModel = hiltViewModel()
+    val viewModelLocation : LocationViewModel = hiltViewModel()
 
     val result by viewModelRoboflow.result.observeAsState()
     val error by viewModelRoboflow.error.observeAsState()
@@ -98,14 +97,6 @@ fun Home(
         }
     }
 
-    val locationFinePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-
-    val locationCoarsePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-
     val permissionsLocation = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
@@ -114,21 +105,15 @@ fun Home(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionMap ->
-        val permissionGranted = permissionMap.values.reduce{acc, isPermissionranted ->
-            acc && isPermissionranted
-        }
+        val permissionGranted = permissionMap.values.all { it }
 
         if (!permissionGranted) {
             Toast.makeText(context, "Permission location denied", Toast.LENGTH_SHORT).show()
         }
     }
 
-    val fusedLocationProviderClient = remember {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-
     LaunchedEffect(Unit) {
-        if (!locationFinePermissionAlreadyGranted || !locationCoarsePermissionAlreadyGranted) {
+        if (!viewModelLocation.isLocationPermissionGranted()) {
             locationPermissionLauncher.launch(permissionsLocation)
         }
     }
@@ -191,18 +176,21 @@ fun Home(
                         viewModelRiwayat.insert(uri, label, confidence)
                         Toast.makeText(context, "Berhasil ditambahkan ke riwayat", Toast.LENGTH_SHORT).show()
 
-                        fusedLocationProviderClient.lastLocation.addOnSuccessListener { loc ->
-                            loc?.let {
+                        viewModelLocation.getLastUserLocation(
+                            onGetLastLocationSuccess = { lat, lng ->
                                 markerViewModel.addMarker(
                                     id = "",
-                                    lat = it.latitude,
-                                    lng = it.longitude,
-                                    label = bestPrediction?.key ?: "Unknown",
-                                    confidences = bestPrediction?.value?.confidence?.toFloat() ?: 0f,
+                                    lat = lat,
+                                    lng = lng,
+                                    label = label,
+                                    confidences = confidence,
                                     imageUrl = uri.toString()
                                 )
+                            },
+                            onGetLastLocationFailed = {
+                                Toast.makeText(context, "Gagal mendapatkan akses lokasi", Toast.LENGTH_SHORT).show()
                             }
-                        }
+                        )
                         viewModelCameraAndGalleryViewModel.resetImage()
                     }
                 ) {

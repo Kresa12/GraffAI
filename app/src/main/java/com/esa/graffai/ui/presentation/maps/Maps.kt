@@ -1,7 +1,6 @@
 package com.esa.graffai.ui.presentation.maps
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,15 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.esa.graffai.viewmodel.LocationViewModel
 import com.esa.graffai.viewmodel.MarkerViewModel
-import com.google.android.gms.location.LocationServices
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -31,16 +28,10 @@ fun Maps(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val markerViewModel : MarkerViewModel = hiltViewModel()
+    val markerViewModel: MarkerViewModel = hiltViewModel()
+    val viewModelLocation: LocationViewModel = hiltViewModel()
+
     val marker by markerViewModel.marker.collectAsState()
-
-    val locationFinePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-
-    val locationCoarsePermissionAlreadyGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     val permissionsLocation = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -50,25 +41,17 @@ fun Maps(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionMap ->
-        val permissionGranted = permissionMap.values.reduce{acc, isPermissionranted ->
-            acc && isPermissionranted
-        }
+        val permissionGranted = permissionMap.values.all { it }
 
         if (!permissionGranted) {
             Toast.makeText(context, "Permission location denied", Toast.LENGTH_SHORT).show()
         }
     }
 
-    val fusedLocationProviderClient = remember {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-
     LaunchedEffect(Unit) {
-        if (!locationFinePermissionAlreadyGranted || !locationCoarsePermissionAlreadyGranted) {
+        if (!viewModelLocation.isLocationPermissionGranted()) {
             locationPermissionLauncher.launch(permissionsLocation)
         }
-
-        markerViewModel.getAllMarkers()
     }
 
     Column(
@@ -82,13 +65,14 @@ fun Maps(
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
                     controller.setZoom(15.0)
-                    fusedLocationProviderClient.lastLocation.addOnSuccessListener { loc ->
-                        loc?.let {
-                            controller.setCenter(
-                                GeoPoint(loc.latitude, loc.longitude)
-                            )
+                    viewModelLocation.getLastUserLocation(
+                        onGetLastLocationSuccess = { lat, lng ->
+                            controller.setCenter(GeoPoint(lat, lng))
+                        },
+                        onGetLastLocationFailed = {
+                            Toast.makeText(context, "Gagal mendapatkan akses lokasi", Toast.LENGTH_SHORT).show()
                         }
-                    }
+                    )
                 }
             },
             update = { mapView ->
@@ -114,9 +98,10 @@ fun Maps(
                         title = "Prediksi: ${markerModel.label}"
                         snippet = "Confidence: ${"%.2f".format(markerModel.confidences * 100)}%"
 
-                        setOnMarkerClickListener{_, _ ->
+                        setOnMarkerClickListener { _, _ ->
                             markerViewModel.deleteMarker(markerModel = markerModel)
-                            Toast.makeText(context, "marker berhasil di hapus", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "marker berhasil di hapus", Toast.LENGTH_SHORT)
+                                .show()
                             true
                         }
                     }
