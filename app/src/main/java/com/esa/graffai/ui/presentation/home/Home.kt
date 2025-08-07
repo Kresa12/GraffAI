@@ -26,11 +26,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +42,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
-import com.esa.graffai.utils.FileUtils
+import com.esa.graffai.viewmodel.CameraAndGalleryViewModel
 import com.esa.graffai.viewmodel.MarkerViewModel
 import com.esa.graffai.viewmodel.RiwayatViewModel
 import com.esa.graffai.viewmodel.RoboflowViewModel
@@ -54,25 +54,23 @@ fun Home(
     navController: NavController
 ) {
     val context = LocalContext.current
-    val viewModel: RoboflowViewModel = hiltViewModel()
+
+    val viewModelRoboflow: RoboflowViewModel = hiltViewModel()
     val viewModelRiwayat: RiwayatViewModel = hiltViewModel()
-
-    val result by viewModel.result.observeAsState()
-    val error by viewModel.error.observeAsState()
-
     val markerViewModel : MarkerViewModel = hiltViewModel()
+    val viewModelCameraAndGalleryViewModel : CameraAndGalleryViewModel = hiltViewModel()
 
-    var selectedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val result by viewModelRoboflow.result.observeAsState()
+    val error by viewModelRoboflow.error.observeAsState()
+    val selectedImageUri by viewModelCameraAndGalleryViewModel.selectedImageUri.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val uriToBitmap = FileUtils.uriToBitmap(context, uri)
-            uriToBitmap?.let {bitmap ->
-                selectedImageUri = FileUtils.saveBitmapToInternalStorage(context, bitmap)
-            }
+            viewModelCameraAndGalleryViewModel.handleGalleryResult(uri)
         }
     }
 
@@ -80,7 +78,7 @@ fun Home(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         bitmap?.let {
-            selectedImageUri = FileUtils.saveBitmapToInternalStorage(context, it)
+            viewModelCameraAndGalleryViewModel.handleCameraResult(bitmap)
         }
     }
 
@@ -178,7 +176,7 @@ fun Home(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(onClick = {
-                    viewModel.classifyImageFromUri(context, uri)
+                    viewModelRoboflow.classifyImageFromUri(context, uri)
                 }) {
                     Text("Kirim ke API")
                 }
@@ -205,6 +203,7 @@ fun Home(
                                 )
                             }
                         }
+                        viewModelCameraAndGalleryViewModel.resetImage()
                     }
                 ) {
                     Text("Tambahkan Ke Riwayat")
