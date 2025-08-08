@@ -17,7 +17,11 @@ class MarkerViewModel @Inject constructor(
     private val _markers = MutableStateFlow<List<MarkerModel>>(emptyList())
     val marker : StateFlow<List<MarkerModel>> = _markers
 
-    fun getAllMarkers() {
+    init {
+        getAllMarkers()
+    }
+
+    private fun getAllMarkers() {
         viewModelScope.launch {
             val result = repository.getAllMarkers()
             _markers.value = result

@@ -1,8 +1,10 @@
 package com.esa.graffai.viewmodel
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.esa.graffai.utils.DEFAULT_LAT
@@ -17,6 +19,10 @@ class LocationViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    //masih ada masalah, kalau user menolak permission location, permission tidak akan muncul lagi
+    //besok lanjut flow untuk lokasi ya agar uxnya enak
+    //bikin bottom navigation???
+    //marker belum muncul
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     fun isLocationPermissionGranted(): Boolean {
