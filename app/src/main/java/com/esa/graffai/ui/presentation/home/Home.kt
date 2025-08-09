@@ -131,9 +131,7 @@ fun Home(
         }) {
             Text("Pilih Gambar")
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
         if (selectedImageUri == null) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -157,17 +155,13 @@ fun Home(
                         .clip(shape = RoundedCornerShape(5.dp))
                         .border(2.dp, Color.Gray, RoundedCornerShape(5.dp))
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(onClick = {
                     viewModelRoboflow.classifyImageFromUri(context, uri)
                 }) {
                     Text("Kirim ke API")
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = {
                         val bestPrediction = result?.predictions?.maxByOrNull { it.value.confidence }
@@ -213,7 +207,6 @@ fun Home(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
         Button(
             onClick = {
                 navController.navigate("riwayat")
@@ -221,7 +214,6 @@ fun Home(
         ) {
             Text("Riwayat")
         }
-
         Button(
             onClick = {
                 navController.navigate("maps")
