@@ -66,6 +66,18 @@ fun OnBoarding(
             color = Color.Gray
         )
 
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Tombol Mulai
+        Button(
+            onClick = {
+                navController.navigate("home") {
+                    popUpTo("onboarding") { inclusive = true } // Supaya onboarding tidak balik lagi
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Mulai Sekarang")
+        }
     }
 }
